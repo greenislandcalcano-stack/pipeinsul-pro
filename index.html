@@ -41,8 +41,8 @@
 .pattern-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.pattern-controls label{margin:0 0 6px}.pattern-preview{overflow:auto;background:#0b1725;border:1px solid #40546a;border-radius:12px;padding:12px}.pattern-preview svg{display:block;max-width:100%;height:auto;margin:auto}.pattern-tools{display:flex;gap:10px;flex-wrap:wrap}.pattern-warn{border-left:4px solid #f0bb62;padding:12px;background:#302a1d;color:#f7dfb4;margin-top:12px;font-size:13px}.pattern-details{font-size:13px;color:#c2d3df;line-height:1.6}.pattern-controls .wide{grid-column:span 2}@media(max-width:750px){.pattern-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}@media print{#patternGenerator .pattern-tools{display:none}}
 </style>
 <section class="panel" id="patternGenerator" style="margin-top:22px">
-<h2>✂ Segmented Elbow Pattern Generator · V3.0 BETA</h2>
-<p>Flat developments for <strong>cylindrical, straight-mitered</strong> elbow jacket sections. Preview the first, middle or last segment and export an SVG with physical millimeter dimensions. Not for pressed shells or compound-curved gores.</p>
+<h2>✂ Segmented Elbow Pattern Generator · V3.2 FIELD LAYOUT</h2>
+<p>Developed cylindrical straight-miter jackets with <strong>inch-first station coordinates, common baseline, labeled SVG and 1:1 export</strong>. First / interior / last segments. Not suitable for pressed or compound-curved shells.</p>
 <div class="pattern-controls">
 <div><label for="pAngle">Total elbow angle</label><select id="pAngle"><option value="90">90°</option><option value="45">45°</option><option value="60">60°</option><option value="30">30°</option></select></div>
 <div><label for="pN">Total segments</label><input id="pN" type="number" min="3" max="30" step="1" value="5"></div>
@@ -56,11 +56,11 @@
 <div id="pError" class="error" role="alert"></div>
 <div id="pDetails" class="pattern-details" style="margin:14px 0"></div>
 <div class="pattern-stations"><h3>Field transfer measurements — station table</h3><p>Start at the left seam edge. Mark each station along the developed wrap (X). From the common bottom datum line, mark the LEFT and RIGHT cut-edge offsets (Y). Connect marks with a smooth curve. All measurements are in the selected units; inches also show nearest shop fraction.</p><label for="pStations">Layout divisions around circumference</label><select id="pStations"><option value="8">8 divisions</option><option value="12">12 divisions</option><option value="16" selected>16 divisions</option><option value="24">24 divisions</option><option value="32">32 divisions</option></select><label for="pFraction">Shop fraction precision</label><select id="pFraction"><option value="16">Nearest 1/16 in</option><option value="32" selected>Nearest 1/32 in</option><option value="64">Nearest 1/64 in</option></select><div id="pStationInfo" class="notice"></div><div class="station-scroll"><table class="station-table"><thead><tr><th>Station</th><th>X from seam</th><th>Left edge Y</th><th>Right edge Y</th></tr></thead><tbody id="pStationRows"></tbody></table></div><div class="actions"><button type="button" id="pCsv">Download station CSV</button><button type="button" class="secondary" id="pPrint">Print measurements</button></div></div>
-<div class="pattern-preview" id="pPreview"></div>
+<div class="pattern-preview" id="pPreview"></div><div class="notice" id="pShopNotes" style="margin-top:12px"></div>
 <div class="pattern-tools" style="margin-top:12px"><button type="button" id="pSync">Use straight-pipe dimensions</button><button type="button" id="pExport">Download 1:1 SVG pattern</button><button type="button" class="secondary" id="pExportAll">Download all 3 pattern types</button></div>
-<div class="pattern-warn"><strong>Fabrication caution:</strong> Geometric reference for ideal circular pipe and equal-deflection miter joints. The centerline radius is approximated by a polygonal miter centerline. No circumferential seam allowances, hems, crimping, bead, clearance, metal thickness, insulation compression, field tolerance, or manufacturer specifications are included. SVG is dimensioned in millimeters; verify the calibration bar after printing at 100% / actual size. Do not cut production material until the pattern is verified on a physical mock-up.</div>
+<div class="pattern-warn"><strong>Fabrication caution:</strong> Geometric reference for ideal circular pipe and equal-deflection miter joints. The centerline radius is approximated by a polygonal miter centerline. Longitudinal seam overlap is shown as a separate extension, not a pre-engineered lap profile. No end seam allowances, hems, crimping, bead, clearance, metal thickness, insulation compression, field tolerance, or manufacturer specifications are included. SVG is dimensioned in millimeters; verify the calibration bar after printing at 100% / actual size. Do not cut production material until the pattern is verified on a physical mock-up.</div>
 </section>
-<footer>PipeInsul Pro · Prototype V3.1 BETA · Verify all measurements and manufacturer/project requirements before cutting, purchasing or installation.</footer></div><script>const $=id=>document.getElementById(id),ids=['units','nps','od','thick','length','lap','end','stock','waste'];let previous='in',summary='';function calculate(){const metric=$('units').value==='mm',scale=metric?25.4:1,od=+$('od').value,th=+$('thick').value,len=+$('length').value,lap=+$('lap').value,end=+$('end').value,stock=+$('stock').value,waste=+$('waste').value,dim=metric?'mm':'in',areaUnit=metric?'m²':'ft²',volumeUnit=metric?'m³':'ft³';const valid=[od,th,len,lap,end,stock,waste].every(Number.isFinite)&&od>0&&th>=0&&len>0&&lap>=0&&end>=0&&stock>0&&end<stock&&waste>=0; $('error').textContent=valid?'':'Enter valid positive dimensions. End lap must be smaller than stock length.';if(!valid){$('results').innerHTML='';summary='';return}const finish=od+2*th,circ=Math.PI*finish,cut=circ+lap,total=metric?len*1000:len*12,first=stock,coverage=stock-end,count=total<=first?1:1+Math.ceil((total-first)/coverage),area=metric?Math.PI*(finish/1000)*len:Math.PI*(finish/12)*len,vol=metric?Math.PI/4*((finish/1000)**2-(od/1000)**2)*len:Math.PI/4*((finish/12)**2-(od/12)**2)*len,stockArea=(cut*(count*stock))/ (metric?1e6:144),withWaste=stockArea*(1+waste/100);let rows=[['Finished Insulation OD',finish.toFixed(3)+' '+dim],['Finished Circumference',circ.toFixed(3)+' '+dim],['Jacketing Cut Width',cut.toFixed(3)+' '+dim],['Finished Surface Area',area.toFixed(2)+' '+areaUnit],['Insulation Volume',vol.toFixed(3)+' '+volumeUnit],['Estimated Jacket Pieces',count+' pcs'],['Gross Jacket Stock Area',stockArea.toFixed(2)+' '+areaUnit],['Stock Area + Waste',withWaste.toFixed(2)+' '+areaUnit]];$('results').innerHTML=rows.map(([a,b])=>'<div class="result"><small>'+a+'</small><strong>'+b+'</strong></div>').join('');summary='PipeInsul Pro — Straight Pipe\n'+rows.map(x=>x.join(': ')).join('\n')}function unitsChanged(){let next=$('units').value;if(next!==previous){let factor=next==='mm'?25.4:1/25.4;for(let id of ['od','thick','lap','end','stock'])$(id).value=+(+$ (id).value*factor).toFixed(3);$('length').value=+(+$('length').value*(next==='mm'?0.3048:1/0.3048)).toFixed(3);previous=next}document.querySelectorAll('.du').forEach(x=>x.textContent=next==='mm'?'(mm)':'(in)');$('lu').textContent=next==='mm'?'(m)':'(ft)';calculate()}$('nps').addEventListener('change',()=>{if($('nps').value!=='custom')$('od').value=+(+$('nps').value*($('units').value==='mm'?25.4:1)).toFixed(3);calculate()});$('od').addEventListener('input',()=>{$('nps').value='custom';calculate()});ids.filter(x=>!['nps','od','units'].includes(x)).forEach(id=>$(id).addEventListener('input',calculate));$('units').addEventListener('change',unitsChanged);$('copy').addEventListener('click',async()=>{if(!summary)return;try{await navigator.clipboard.writeText(summary);$('copy').textContent='Copied!';setTimeout(()=>$('copy').textContent='Copy Results',1500)}catch(e){alert('Clipboard unavailable. Use Print Worksheet instead.')}});calculate();</script><script>
+<footer>PipeInsul Pro · Prototype V3.2 BETA · Verify all measurements and manufacturer/project requirements before cutting, purchasing or installation.</footer></div><script>const $=id=>document.getElementById(id),ids=['units','nps','od','thick','length','lap','end','stock','waste'];let previous='in',summary='';function calculate(){const metric=$('units').value==='mm',scale=metric?25.4:1,od=+$('od').value,th=+$('thick').value,len=+$('length').value,lap=+$('lap').value,end=+$('end').value,stock=+$('stock').value,waste=+$('waste').value,dim=metric?'mm':'in',areaUnit=metric?'m²':'ft²',volumeUnit=metric?'m³':'ft³';const valid=[od,th,len,lap,end,stock,waste].every(Number.isFinite)&&od>0&&th>=0&&len>0&&lap>=0&&end>=0&&stock>0&&end<stock&&waste>=0; $('error').textContent=valid?'':'Enter valid positive dimensions. End lap must be smaller than stock length.';if(!valid){$('results').innerHTML='';summary='';return}const finish=od+2*th,circ=Math.PI*finish,cut=circ+lap,total=metric?len*1000:len*12,first=stock,coverage=stock-end,count=total<=first?1:1+Math.ceil((total-first)/coverage),area=metric?Math.PI*(finish/1000)*len:Math.PI*(finish/12)*len,vol=metric?Math.PI/4*((finish/1000)**2-(od/1000)**2)*len:Math.PI/4*((finish/12)**2-(od/12)**2)*len,stockArea=(cut*(count*stock))/ (metric?1e6:144),withWaste=stockArea*(1+waste/100);let rows=[['Finished Insulation OD',finish.toFixed(3)+' '+dim],['Finished Circumference',circ.toFixed(3)+' '+dim],['Jacketing Cut Width',cut.toFixed(3)+' '+dim],['Finished Surface Area',area.toFixed(2)+' '+areaUnit],['Insulation Volume',vol.toFixed(3)+' '+volumeUnit],['Estimated Jacket Pieces',count+' pcs'],['Gross Jacket Stock Area',stockArea.toFixed(2)+' '+areaUnit],['Stock Area + Waste',withWaste.toFixed(2)+' '+areaUnit]];$('results').innerHTML=rows.map(([a,b])=>'<div class="result"><small>'+a+'</small><strong>'+b+'</strong></div>').join('');summary='PipeInsul Pro — Straight Pipe\n'+rows.map(x=>x.join(': ')).join('\n')}function unitsChanged(){let next=$('units').value;if(next!==previous){let factor=next==='mm'?25.4:1/25.4;for(let id of ['od','thick','lap','end','stock'])$(id).value=+(+$ (id).value*factor).toFixed(3);$('length').value=+(+$('length').value*(next==='mm'?0.3048:1/0.3048)).toFixed(3);previous=next}document.querySelectorAll('.du').forEach(x=>x.textContent=next==='mm'?'(mm)':'(in)');$('lu').textContent=next==='mm'?'(m)':'(ft)';calculate()}$('nps').addEventListener('change',()=>{if($('nps').value!=='custom')$('od').value=+(+$('nps').value*($('units').value==='mm'?25.4:1)).toFixed(3);calculate()});$('od').addEventListener('input',()=>{$('nps').value='custom';calculate()});ids.filter(x=>!['nps','od','units'].includes(x)).forEach(id=>$(id).addEventListener('input',calculate));$('units').addEventListener('change',unitsChanged);$('copy').addEventListener('click',async()=>{if(!summary)return;try{await navigator.clipboard.writeText(summary);$('copy').textContent='Copied!';setTimeout(()=>$('copy').textContent='Copy Results',1500)}catch(e){alert('Clipboard unavailable. Use Print Worksheet instead.')}});calculate();</script><script>
 (()=>{
 const el=id=>document.getElementById(id);let mode='seg',elbowSummary='';
 const val=id=>Number(el(id).value);
@@ -100,64 +100,78 @@ const el=id=>document.getElementById(id), numeric=id=>Number(el(id).value);
 const mm=()=>el('units').value==='mm'?1:25.4;
 let generated={},stationCsv="";
 function pattern(kind, cfg){
- const {D,R,lap,delta,samples}=cfg, A=D/2*Math.tan(delta/2), pitch=R*Math.tan(delta/2), L=kind==='middle'?2*pitch:pitch;
- const w=Math.PI*D+lap, pts=[];
- // X is circumferential development; Y is axial. Ends are cut by bisector planes.
+ const {D,R,lap,delta,samples}=cfg, radius=D/2, A=radius*Math.tan(delta/2), pitch=R*Math.tan(delta/2), L=kind==='middle'?2*pitch:pitch;
+ const circumference=Math.PI*D, w=circumference+lap, pts=[];
  for(let i=0;i<=samples;i++){
-  const x=i/samples*Math.PI*D, c=Math.cos(2*Math.PI*i/samples);
-  const left=kind==='first'?0:A*c;
-  const right=kind==='last'?L:L-A*c;
-  pts.push({x,left,right});
+  const x=i/samples*circumference, c=Math.cos(2*Math.PI*i/samples);
+  pts.push({x,left:kind==='first'?0:A*c,right:kind==='last'?L:L-A*c});
  }
- const ymin=Math.min(...pts.map(p=>Math.min(p.left,p.right)),0)-12;
- const ymax=Math.max(...pts.map(p=>Math.max(p.left,p.right)),L)+12;
- const margin=13, vbW=w+2*margin, vbH=ymax-ymin+2*margin;
- const X=x=>x+margin, Y=y=>y-ymin+margin;
- const path=(key)=>pts.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(3)+' '+Y(p[key]).toFixed(3)).join(' ');
- const line=(x1,y1,x2,y2,color='#6fe4d1',dash='')=>`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${color}" stroke-width="0.45" ${dash?'stroke-dasharray="'+dash+'"':''}/>`;
+ const datum=Math.min(0,...pts.map(p=>Math.min(p.left,p.right)));
+ const ymax=Math.max(L,...pts.map(p=>Math.max(p.left,p.right)));
+ const marginLeft=18,marginRight=15,marginTop=18,marginBottom=25;
+ const vbW=w+marginLeft+marginRight, vbH=ymax-datum+marginTop+marginBottom;
+ const X=x=>x+marginLeft, Y=y=>y-datum+marginTop;
+ const fmt=v=>Number(v).toFixed(3);
+ const path=key=>pts.map((p,i)=>(i?'L':'M')+fmt(X(p.x))+' '+fmt(Y(p[key]))).join(' ');
  const title={first:'FIRST END',middle:'INTERIOR',last:'LAST END'}[kind];
- const txt=(x,y,str,size=3.2)=>`<text x="${X(x)}" y="${Y(y)}" font-size="${size}" fill="#d6eaf2">${str}</text>`;
- const content=`<rect x="0" y="0" width="${vbW}" height="${vbH}" fill="#0b1725"/>`+
- `<path d="${path('left')}" fill="none" stroke="#f0bb62" stroke-width="0.7"/><path d="${path('right')}" fill="none" stroke="#f0bb62" stroke-width="0.7"/>`+
- line(0,pts[0].left,0,pts[0].right)+line(Math.PI*D,pts[samples].left,Math.PI*D,pts[samples].right)+
- line(Math.PI*D,pts[samples].left,w,pts[samples].left,'#8ca7b9','2 1')+line(Math.PI*D,pts[samples].right,w,pts[samples].right,'#8ca7b9','2 1')+
- line(Math.PI*D,0,Math.PI*D,L,'#ffb47e','2 1')+
- line(0,L/2,Math.PI*D,L/2,'#627f96','2 2')+
- txt(0,ymin+3,`PIPEINSUL PRO V3.1 / ${title} / mm`,3.2)+txt(0,ymax-2,`Wrap: ${(Math.PI*D).toFixed(1)} mm + seam ${lap.toFixed(1)} mm`,3.2)+
- `<line x1="${X(0)}" y1="${Y(ymax-6)}" x2="${X(100)}" y2="${Y(ymax-6)}" stroke="#fff" stroke-width="0.7"/>`+
- txt(0,ymax-7,'100 mm calibration',3);
- return {D,lap,delta,pts,ymin,ymax,margin,vbW,vbH,svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${vbW.toFixed(3)}mm" height="${vbH.toFixed(3)}mm" viewBox="0 0 ${vbW.toFixed(3)} ${vbH.toFixed(3)}">${content}</svg>`,L,A,w,clearance:L-2*A};
+ const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+ const line=(x1,y1,x2,y2,stroke='#147d82',dash='')=>`<line x1="${fmt(X(x1))}" y1="${fmt(Y(y1))}" x2="${fmt(X(x2))}" y2="${fmt(Y(y2))}" stroke="${stroke}" stroke-width="0.35" ${dash?'stroke-dasharray="'+dash+'"':''}/>`;
+ const label=(x,y,t,size=2.8,anchor='start')=>`<text x="${fmt(X(x))}" y="${fmt(Y(y))}" font-size="${size}" fill="#111" text-anchor="${anchor}">${esc(t)}</text>`;
+ const divisions=cfg.divisions||16, ticks=[];
+ for(let i=0;i<=divisions;i++){
+  const x=circumference*i/divisions;
+  ticks.push(line(x,datum,x,ymax,'#b6c3c8','2 2'));
+  ticks.push(label(x,datum-3,String(i),2.5,'middle'));
+ }
+ const svgContent=`<rect x="0" y="0" width="${fmt(vbW)}" height="${fmt(vbH)}" fill="white"/>`+
+ ticks.join('')+
+ `<path d="${path('left')}" fill="none" stroke="#b34420" stroke-width="0.55"/>`+
+ `<path d="${path('right')}" fill="none" stroke="#b34420" stroke-width="0.55"/>`+
+ line(0,pts[0].left,0,pts[0].right,'#b34420')+
+ line(circumference,pts[samples].left,circumference,pts[samples].right,'#b34420')+
+ line(circumference,datum,circumference,ymax,'#147d82','1.5 1.5')+
+ line(0,datum,w,datum,'#111')+
+ line(circumference,pts[samples].left,w,pts[samples].left,'#147d82','1.5 1.5')+
+ line(circumference,pts[samples].right,w,pts[samples].right,'#147d82','1.5 1.5')+
+ line(w,pts[samples].left,w,pts[samples].right,'#147d82','1.5 1.5')+
+ label(0,datum-10,`PIPEINSUL PRO V3.2 | ${title} | DATUM Y=0 | mm geometry`,3.1)+
+ label(0,ymax+6,`Wrap ${fmt(circumference/25.4)} in + seam ${fmt(lap/25.4)} in`,2.9)+
+ line(0,ymax+12,25.4,ymax+12,'#111')+
+ line(0,ymax+10.5,0,ymax+13.5,'#111')+line(25.4,ymax+10.5,25.4,ymax+13.5,'#111')+
+ label(12.7,ymax+17,'1.000 in CALIBRATION',2.8,'middle')+
+ label(0,ymax+22,'PRINT 100% / ACTUAL SIZE. VERIFY BAR BEFORE USE.',2.5);
+ return {D,R,lap,delta,pts,datum,ymax,marginLeft,marginTop,vbW,vbH,
+  svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${fmt(vbW)}mm" height="${fmt(vbH)}mm" viewBox="0 0 ${fmt(vbW)} ${fmt(vbH)}">${svgContent}</svg>`,
+  L,A,w,circumference,clearance:L-2*A};
 }
 function calc(){
  const scale=mm(),D=(numeric('pOd')+2*numeric('pTh'))*scale,R=numeric('pRadius')*scale,lap=numeric('pLap')*scale,n=numeric('pN'),angle=numeric('pAngle'),samples=numeric('pSamples');
  const ok=[D,R,lap,n,angle,samples].every(Number.isFinite)&&D>0&&R>0&&lap>=0&&n>=3&&n<=30&&Number.isInteger(n)&&angle>0;
  el('pError').textContent=ok?'':'Enter valid values (3–30 whole segments, positive OD and radius).';
  if(!ok){el('pPreview').innerHTML='';el('pDetails').textContent='';el('pStationRows').innerHTML='';generated={};return}
- const delta=angle*Math.PI/180/(n-1),cfg={D,R,lap,delta,samples};
+ const delta=angle*Math.PI/180/(n-1),cfg={D,R,lap,delta,samples,divisions:Number(el('pStations').value)};
  generated={first:pattern('first',cfg),middle:pattern('middle',cfg),last:pattern('last',cfg)};
  const kind=el('pKind').value,g=generated[kind],u=el('units').value==='mm'?'mm':'in',back=1/scale;
  el('pDetails').textContent=`Finished OD: ${(D*back).toFixed(3)} ${u} | Joint deflection: ${(delta*180/Math.PI).toFixed(3)}° | Miter half-angle: ${(delta*90/Math.PI).toFixed(3)}° | Centerline length (${kind}): ${(g.L*back).toFixed(3)} ${u} | Developed wrap + seam: ${(g.w*back).toFixed(3)} ${u} | Edge wave amplitude: ${(g.A*back).toFixed(3)} ${u}`;
  el('pPreview').innerHTML=g.svg;
- const divisions=Number(el('pStations').value),fraction=Number(el('pFraction').value),circ=Math.PI*D,datum=Math.min(0,...g.pts.map(p=>Math.min(p.left,p.right))),maxEdge=Math.max(...g.pts.map(p=>Math.max(p.left,p.right))),unitFactor=1/scale;
+ const divisions=Number(el('pStations').value),fraction=Number(el('pFraction').value),circ=Math.PI*D,datum=g.datum,maxEdge=g.ymax,unitFactor=1/scale;
  const gcd=(a,b)=>b?gcd(b,a%b):a;
  const frac=x=>{if(el('units').value==='mm')return '';let v=Math.round(Math.abs(x)*fraction),whole=Math.floor(v/fraction),num=v%fraction;if(!num)return String(whole)+'″';const q=gcd(num,fraction);return (whole?whole+' ':'')+(num/q)+'/'+(fraction/q)+'″'};
  const disp=v=>{const x=v*unitFactor;return x.toFixed(3)+(el('units').value==='mm'?' mm':' in')+(el('units').value==='mm'?'':' ('+frac(x)+')')};
  const table=[],lines=[];
  for(let i=0;i<=divisions;i++){const x=circ*i/divisions,c=Math.cos(2*Math.PI*i/divisions),A=g.A,L=g.L,kind=el('pKind').value,left=kind==='first'?0:A*c,right=kind==='last'?L:L-A*c;table.push({i,x,left:left-datum,right:right-datum});lines.push(`${i},${(x*unitFactor).toFixed(4)},${((left-datum)*unitFactor).toFixed(4)},${((right-datum)*unitFactor).toFixed(4)}`)}
  el('pStationRows').innerHTML=table.map(p=>`<tr><td>${p.i}</td><td>${disp(p.x)}</td><td>${disp(p.left)}</td><td>${disp(p.right)}</td></tr>`).join('');
- el('pStationInfo').textContent=`Datum: ${disp(datum)} relative to original pattern Y=0. Mark all Y measurements UP from a common baseline located ${disp(12-datum)} below the original Y=0 reference. Circumference: ${disp(circ)}. Seam overlap: ${disp(lap)} (not included in station X). Station spacing: ${disp(circ/divisions)}. Largest Y offset: ${disp(maxEdge-datum)}. Fraction values are rounded; use decimals for higher precision.`;
- stationCsv=`PipeInsul Pro V3.1 — ${el('pKind').value} segment\nUnits,${el('units').value==='mm'?'mm':'in'}\nDatum relative to pattern Y=0,${(datum*unitFactor).toFixed(4)}\nStation,X from seam,Left Y from datum,Right Y from datum\n`+lines.join('\n');
- // Station tick marks are reference guides; cutting curves remain the original geometric model.
- const ticks=table.map(p=>{const xx=g.margin+p.x,top=g.margin+datum-g.ymin;return `<line x1="${xx.toFixed(3)}" y1="${top.toFixed(3)}" x2="${xx.toFixed(3)}" y2="${(top-2.2).toFixed(3)}" stroke="#80e8d5" stroke-width="0.4"/>`}).join('');
- el('pPreview').querySelector('svg')?.insertAdjacentHTML('beforeend',ticks);
+ el('pStationInfo').textContent=`BASELINE Y=0 is the bottom horizontal line on the SVG. X starts at seam station 0 and runs to station ${divisions} at the end of the circumference. Mark both cut offsets Y UP from baseline at each station. Circumference: ${disp(circ)}; station spacing: ${disp(circ/divisions)}; add seam extension: ${disp(lap)} beyond final station. Highest cut offset: ${disp(maxEdge-datum)}. Use decimals for precision; fractions are rounded.`;
+ stationCsv=`PipeInsul Pro V3.2 — ${el('pKind').value} segment\nUnits,${el('units').value==='mm'?'mm':'in'}\nDatum relative to pattern Y=0,${(datum*unitFactor).toFixed(4)}\nStation,X from seam,Left Y from datum,Right Y from datum\n`+lines.join('\n');
+ el('pShopNotes').textContent=`CUTTING INSTRUCTIONS: 1) Draw a straight baseline on the flat sheet. 2) Mark X positions from station 0, using the table (not the fraction alone). 3) At every X, measure both Y offsets perpendicular to baseline. 4) Fair curves through corresponding points. 5) Extend ${disp(lap)} beyond the last station for the longitudinal lap; profile and fastener detail must be chosen by the fabricator. 6) Print SVG at actual size and measure its 1-inch calibration bar. This is a geometric mockup template, not a production-approved pattern.`;
  if(R<=D/2){el('pError').textContent='WARNING: CLR is not greater than finished OD / 2. Pattern edges may intersect or leave insufficient clearance. Do not fabricate from this layout.'}
 }
-function download(kind){const svg=generated[kind]?.svg;if(!svg)return;const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PipeInsul-V3-'+kind+'-pattern.svg';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+function download(kind){const svg=generated[kind]?.svg;if(!svg)return;const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PipeInsul-V3.2-'+kind+'-1to1-pattern.svg';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 ['pAngle','pN','pRadius','pOd','pTh','pLap','pKind','pSamples','pStations','pFraction'].forEach(id=>el(id).addEventListener('input',calc));
 el('pSync').addEventListener('click',()=>{el('pOd').value=el('od').value;el('pTh').value=el('thick').value;el('pLap').value=el('lap').value;el('pRadius').value=el('eRadius').value;calc()});
 el('units').addEventListener('change',()=>{const factor=el('units').value==='mm'?25.4:1/25.4;['pOd','pTh','pLap','pRadius'].forEach(id=>el(id).value=(numeric(id)*factor).toFixed(3));document.querySelectorAll('.punit').forEach(e=>e.textContent=el('units').value==='mm'?'(mm)':'(in)');calc()});
-el('pCsv').addEventListener('click',()=>{if(!stationCsv)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([stationCsv],{type:'text/csv'}));a.href=url;a.download='PipeInsul-V3.1-station-layout.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)});
-el('pPrint').addEventListener('click',()=>window.print());
+el('pCsv').addEventListener('click',()=>{if(!stationCsv)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([stationCsv],{type:'text/csv'}));a.href=url;a.download='PipeInsul-V3.2-station-layout.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)});
+el('pPrint').addEventListener('click',()=>{const section=el('patternGenerator').cloneNode(true);section.querySelector('.pattern-preview')?.remove();section.querySelector('.pattern-tools')?.remove();section.querySelector('.pattern-controls')?.remove();section.querySelector('.actions')?.remove();const win=window.open('','_blank');if(!win){alert('Allow pop-ups to print the worksheet.');return;}win.document.write('<!doctype html><html><head><title>PipeInsul V3.2 — Field Worksheet</title><style>body{font:12px Arial;margin:20mm;color:#111}table{border-collapse:collapse;width:100%}th,td{border:1px solid #777;padding:5px;text-align:left}.pattern-warn{margin-top:18px}button{display:none}</style></head><body>'+section.innerHTML+'</body></html>');win.document.close();win.focus();setTimeout(()=>win.print(),300);});
 el('pExport').addEventListener('click' ,()=>download(el('pKind').value));el('pExportAll').addEventListener('click',()=>['first','middle','last'].forEach(download));calc();
 })();
 </script>
